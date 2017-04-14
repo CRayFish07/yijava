@@ -2,6 +2,8 @@ package cc.it120.www.servletFreemarker.init;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContextEvent;
@@ -15,6 +17,7 @@ import com.google.common.cache.CacheBuilder;
 import cc.it120.www.servletFreemarker.FreemarkerServlet;
 import cc.it120.www.servletFreemarker.method.BaseApiTemplateMethodModelEx;
 import cc.it120.www.servletFreemarker.util.CacheUtils;
+import cc.it120.www.servletFreemarker.util.ScheduledUtils;
 
 
 public class InitWeb implements ServletContextListener {
@@ -50,6 +53,47 @@ public class InitWeb implements ServletContextListener {
 			
 			BaseApiTemplateMethodModelEx templateMethodModelEx = new BaseApiTemplateMethodModelEx(api, json);
 			FreemarkerServlet.FREEMARKER_EXT_METHODS.put(api.getString("name"), templateMethodModelEx);
+		}
+		
+		JSONArray schedulings = json.getJSONArray("schedulings");
+		processSchedulings(schedulings);
+	}
+	
+	private void processSchedulings (JSONArray schedulings) {
+		if (schedulings == null || schedulings.size() < 1) {
+			return;
+		}
+		ScheduledUtils.EXECUTOR = Executors.newScheduledThreadPool(schedulings.size());
+		for (Object object : schedulings) {
+			JSONObject json = (JSONObject) object;
+			String apiName = json.getString("apiName");
+			BaseApiTemplateMethodModelEx templateMethodModelEx = FreemarkerServlet.FREEMARKER_EXT_METHODS.get(apiName);
+			
+			String type = json.getString("type");
+			long period = json.getLongValue("period");
+			if (type == null || "rate".equals(type)) {
+				ScheduledUtils.EXECUTOR.scheduleAtFixedRate(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							templateMethodModelEx.exec(new ArrayList<>());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}, 0, period, TimeUnit.valueOf(json.getString("timeUnit")));
+			} else {
+				ScheduledUtils.EXECUTOR.scheduleWithFixedDelay(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							templateMethodModelEx.exec(new ArrayList<>());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}, 0, period, TimeUnit.valueOf(json.getString("timeUnit")));
+			}
 		}
 	}
 	

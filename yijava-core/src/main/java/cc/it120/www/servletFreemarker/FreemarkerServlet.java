@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Strings;
 
 import cc.it120.www.servletFreemarker.method.BaseApiTemplateMethodModelEx;
+import cc.it120.www.servletFreemarker.method.SleepMethod;
 import cc.it120.www.servletFreemarker.method.UrlEncodeMethod;
 import cc.it120.www.servletFreemarker.util.CookieUtil;
 import freemarker.ext.servlet.AllHttpScopesHashModel;
@@ -30,6 +31,7 @@ public class FreemarkerServlet extends freemarker.ext.servlet.FreemarkerServlet 
 	public static Map<String, BaseApiTemplateMethodModelEx> FREEMARKER_EXT_METHODS = new HashMap<>();
 	public static JSONArray REWRITE_ARRAYS;
 	private static UrlEncodeMethod URLENCODEMETHOD = new UrlEncodeMethod();
+	private static SleepMethod SLEEPMETHOD = new SleepMethod();
 	public static List<String> RESOURCES = new ArrayList<>();
 	public static String DEFAULT_SERVLET_NAME = "default";
 
@@ -60,6 +62,7 @@ public class FreemarkerServlet extends freemarker.ext.servlet.FreemarkerServlet 
 			params.putUnlistedModel(key, FREEMARKER_EXT_METHODS.get(key));
 		}
 		params.putUnlistedModel("urlEncode", URLENCODEMETHOD);
+		params.putUnlistedModel("sleep", SLEEPMETHOD);
 		return params;
 	}
 
